@@ -22,7 +22,7 @@ A lightweight full-stack document editor built with Next.js, TypeScript, Tailwin
 
 ## Local setup
 
-Prerequisites: Node.js 20.19+, npm, and Docker Desktop. A remote PostgreSQL database such as Neon can also be used.
+Prerequisites: Node.js 24.x, npm, and Docker Desktop. A remote PostgreSQL database such as Neon can also be used.
 
 1. Install dependencies:
 
