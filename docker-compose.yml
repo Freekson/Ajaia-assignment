@@ -1,0 +1,38 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ajaia-docs-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ajaia_docs
+      POSTGRES_USER: ajaia
+      POSTGRES_PASSWORD: ajaia_local_password
+    ports:
+      - "127.0.0.1:54329:5432"
+    volumes:
+      - ajaia_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ajaia -d ajaia_docs"]
+      interval: 3s
+      timeout: 3s
+      retries: 15
+
+  postgres-test:
+    image: postgres:16-alpine
+    profiles: ["test"]
+    environment:
+      POSTGRES_DB: ajaia_docs_test
+      POSTGRES_USER: ajaia_test
+      POSTGRES_PASSWORD: ajaia_test_password
+    ports:
+      - "127.0.0.1:54330:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ajaia_test -d ajaia_docs_test"]
+      interval: 2s
+      timeout: 2s
+      retries: 20
+
+volumes:
+  ajaia_postgres_data:
