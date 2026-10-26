@@ -18,13 +18,13 @@ Prisma ORM ────────────── PostgreSQL / Neon
 
 - `User`: the two seeded demo identities.
 - `Document`: title, Tiptap JSON content, owner, monotonic integer version, and timestamps.
-- `DocumentShare`: unique document/user join row granting edit access.
+- `DocumentShare`: unique document/user join row granting `VIEWER` or `EDITOR` access.
 
 Foreign keys cascade when a parent is removed. Indexes cover owner lists, recipient lookups, and modified-date ordering.
 
 ## Identity and authorization
 
-`POST /api/session` validates a database user and writes the selected ID to an HTTP-only, same-site cookie. This is a deliberate demo-auth boundary, not a production authentication system. Every document handler resolves that cookie server-side. Read/content-write access requires ownership or a `DocumentShare`; rename and share management require ownership.
+`POST /api/session` validates a database user and writes the selected ID to an HTTP-only, same-site cookie. This is a deliberate demo-auth boundary, not a production authentication system. Every document handler resolves that cookie server-side. Owners have full access, `EDITOR` shares can read and change content, and `VIEWER` shares are read-only. Rename, delete, and share management remain owner-only. Write roles are enforced both before updates and inside the atomic PostgreSQL update filter.
 
 ## Persistence and editor flow
 
@@ -34,13 +34,13 @@ Each PATCH includes the client's document version. PostgreSQL atomically updates
 
 ## API surface
 
-| Method | Route | Purpose |
-| --- | --- | --- |
-| GET/POST | `/api/documents` | List accessible documents / create one |
-| GET/PATCH | `/api/documents/:id` | Read / rename or save content |
-| POST | `/api/documents/import` | Validate and import a `.txt` file |
-| GET/POST/DELETE | `/api/documents/:id/shares` | List, grant, or revoke shares |
-| POST | `/api/session` | Switch seeded demo identity |
+| Method          | Route                       | Purpose                                |
+| --------------- | --------------------------- | -------------------------------------- |
+| GET/POST        | `/api/documents`            | List accessible documents / create one |
+| GET/PATCH       | `/api/documents/:id`        | Read / rename or save content          |
+| POST            | `/api/documents/import`     | Validate and import a `.txt` file      |
+| GET/POST/DELETE | `/api/documents/:id/shares` | List, grant, or revoke shares          |
+| POST            | `/api/session`              | Switch seeded demo identity            |
 
 ## Tradeoffs
 

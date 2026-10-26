@@ -1,10 +1,13 @@
 import { spawnSync } from "node:child_process";
 
-const databaseUrl = process.env.TEST_DATABASE_URL
-  ?? "postgresql://ajaia_test:ajaia_test_password@localhost:54330/ajaia_docs_test?schema=public";
+const databaseUrl =
+  process.env.TEST_DATABASE_URL ??
+  "postgresql://ajaia_test:ajaia_test_password@localhost:54330/ajaia_docs_test?schema=public";
 
 if (!databaseUrl.includes("ajaia_docs_test")) {
-  console.error("Refusing to run integration tests: TEST_DATABASE_URL must point to ajaia_docs_test.");
+  console.error(
+    "Refusing to run integration tests: TEST_DATABASE_URL must point to ajaia_docs_test.",
+  );
   process.exit(1);
 }
 
@@ -23,7 +26,23 @@ try {
     localContainerStarted = true;
     let healthy = false;
     for (let attempt = 0; attempt < 20; attempt += 1) {
-      const result = spawnSync("docker", ["compose", "--profile", "test", "exec", "-T", "postgres-test", "pg_isready", "-U", "ajaia_test", "-d", "ajaia_docs_test"], { stdio: "ignore", shell: false });
+      const result = spawnSync(
+        "docker",
+        [
+          "compose",
+          "--profile",
+          "test",
+          "exec",
+          "-T",
+          "postgres-test",
+          "pg_isready",
+          "-U",
+          "ajaia_test",
+          "-d",
+          "ajaia_docs_test",
+        ],
+        { stdio: "ignore", shell: false },
+      );
       if (result.status === 0) {
         healthy = true;
         break;
@@ -33,14 +52,30 @@ try {
     if (!healthy) throw new Error("Test PostgreSQL did not become healthy.");
   }
 
-  const testEnvironment = { ...process.env, DATABASE_URL: databaseUrl, DIRECT_URL: databaseUrl, TEST_DATABASE_URL: databaseUrl };
-  run(process.execPath, ["node_modules/prisma/build/index.js", "migrate", "deploy"], testEnvironment);
-  run(process.execPath, ["node_modules/vitest/vitest.mjs", "run", "--config", "vitest.integration.config.ts"], testEnvironment);
+  const testEnvironment = {
+    ...process.env,
+    DATABASE_URL: databaseUrl,
+    DIRECT_URL: databaseUrl,
+    TEST_DATABASE_URL: databaseUrl,
+  };
+  run(
+    process.execPath,
+    ["node_modules/prisma/build/index.js", "migrate", "deploy"],
+    testEnvironment,
+  );
+  run(
+    process.execPath,
+    ["node_modules/vitest/vitest.mjs", "run", "--config", "vitest.integration.config.ts"],
+    testEnvironment,
+  );
 } catch (error) {
   console.error(error instanceof Error ? error.message : error);
   process.exitCode = 1;
 } finally {
   if (managesLocalContainer && localContainerStarted) {
-    spawnSync("docker", ["compose", "--profile", "test", "stop", "postgres-test"], { stdio: "inherit", shell: false });
+    spawnSync("docker", ["compose", "--profile", "test", "stop", "postgres-test"], {
+      stdio: "inherit",
+      shell: false,
+    });
   }
 }

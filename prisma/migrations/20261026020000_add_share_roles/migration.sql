@@ -1,0 +1,7 @@
+CREATE TYPE "DocumentRole" AS ENUM ('VIEWER', 'EDITOR');
+
+ALTER TABLE "DocumentShare"
+ADD COLUMN "role" "DocumentRole" NOT NULL DEFAULT 'EDITOR';
+
+ALTER TABLE "DocumentShare"
+ALTER COLUMN "role" SET DEFAULT 'VIEWER';

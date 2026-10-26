@@ -2,8 +2,8 @@
 
 ## Links
 
-- Public application: `ADD_VERCEL_URL`
-- Source repository: `ADD_REPOSITORY_URL`
+- Public application: https://ajaia-assignment-eta.vercel.app/
+- Source repository: https://github.com/Freekson/Ajaia-assignment
 - Walkthrough video: see `video-link.txt`
 
 ## Included
@@ -20,11 +20,12 @@
 
 ## Acceptance checklist
 
-- [x] Create, rename, edit, save, and reopen documents
+- [x] Create, rename, edit, save, reopen, and delete owned documents
 - [x] Preserve rich-text formatting as structured JSON
 - [x] Import validated `.txt` files up to 1 MB
 - [x] Switch between two seeded demo users
 - [x] Share documents and show them under “Shared with me”
+- [x] Assign viewer or editor roles and enforce them server-side
 - [x] Enforce read/write/share permissions server-side
 - [x] Persist documents and shares in PostgreSQL through Prisma
 - [x] Include meaningful automated tests
@@ -32,13 +33,28 @@
 - [x] Reject stale concurrent writes using atomic PostgreSQL OCC
 - [x] Flush unsaved changes before in-app navigation
 - [x] Include reproducible setup and architecture notes
-- [ ] Add the live Vercel URL after deployment
+- [x] Add the live Vercel URL after deployment
 - [ ] Record and add the 3–5 minute walkthrough video
-- [ ] Run the production smoke checklist after a Vercel URL exists
+- [x] Run the production smoke checklist after a Vercel URL exists
 
 ## Current submission status
 
-The application, migrations, local database, tests, and production build are complete. Deployment, repository URL, Google Drive packaging, screenshots, and the walkthrough video remain pending and must be completed before submission.
+The application is deployed and the production API smoke test passes. Source code, migrations, automated tests, documentation, and the public application URL are ready. Google Drive packaging, screenshots, and the walkthrough video remain pending before submission.
+
+## Production verification
+
+Verified against the public Vercel deployment on October 26, 2026:
+
+- document creation and formatted content save
+- optimistic concurrency conflict response (`409`)
+- sharing with the second demo user and editing as that user
+- access revocation and subsequent forbidden access (`403`)
+- valid `.txt` import and reopening the imported document
+
+## Optional enhancement
+
+- Export the current editor content to Markdown, including headings, emphasis, underline, and lists
+- Role-based sharing with owner, editor, and viewer permission levels
 
 ## Suggested 3–5 minute walkthrough
 

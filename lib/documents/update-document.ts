@@ -1,11 +1,11 @@
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
-import { canAccessDocument, canManageDocument } from "@/lib/access";
+import { canAccessDocument, canEditDocument, canManageDocument } from "@/lib/access";
 
 export type DocumentAccessRecord = {
   ownerId: string;
   version: number;
-  shares: Array<{ userId: string }>;
+  shares: Array<{ userId: string; role: "VIEWER" | "EDITOR" }>;
 };
 
 export type DocumentUpdate = {
@@ -50,6 +50,9 @@ export async function updateDocumentWithVersion(store: DocumentUpdateStore, inpu
   if (input.name !== undefined && !canManageDocument(document, input.userId)) {
     throw new DocumentUpdateError("Only the owner can rename this document.", 403, "FORBIDDEN");
   }
+  if (input.content !== undefined && !canEditDocument(document, input.userId)) {
+    throw new DocumentUpdateError("You have view-only access to this document.", 403, "FORBIDDEN");
+  }
 
   const updated = await store.updateIfCurrent(input);
   if (!updated) {
@@ -57,6 +60,13 @@ export async function updateDocumentWithVersion(store: DocumentUpdateStore, inpu
     if (!latest) throw new DocumentUpdateError("Document not found.", 404, "NOT_FOUND");
     if (!canAccessDocument(latest, input.userId)) {
       throw new DocumentUpdateError("You do not have access to this document.", 403, "FORBIDDEN");
+    }
+    if (input.content !== undefined && !canEditDocument(latest, input.userId)) {
+      throw new DocumentUpdateError(
+        "You have view-only access to this document.",
+        403,
+        "FORBIDDEN",
+      );
     }
     throw new DocumentUpdateError(
       "This document was modified in another session.",
@@ -75,7 +85,7 @@ export const prismaDocumentUpdateStore: DocumentUpdateStore = {
   findAccess(id) {
     return db.document.findUnique({
       where: { id },
-      select: { ownerId: true, version: true, shares: { select: { userId: true } } },
+      select: { ownerId: true, version: true, shares: { select: { userId: true, role: true } } },
     });
   },
   async updateIfCurrent(input) {
@@ -86,7 +96,12 @@ export const prismaDocumentUpdateStore: DocumentUpdateStore = {
         version: input.version,
         ...(requireOwner
           ? { ownerId: input.userId }
-          : { OR: [{ ownerId: input.userId }, { shares: { some: { userId: input.userId } } }] }),
+          : {
+              OR: [
+                { ownerId: input.userId },
+                { shares: { some: { userId: input.userId, role: "EDITOR" } } },
+              ],
+            }),
       },
       data: {
         ...(input.name !== undefined ? { name: input.name } : {}),

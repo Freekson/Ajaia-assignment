@@ -19,10 +19,20 @@ export default async function DashboardPage() {
       ownerId: true,
       updatedAt: true,
       owner: { select: { id: true, name: true, email: true } },
+      shares: { select: { userId: true, role: true } },
     },
     orderBy: { updatedAt: "desc" },
   });
-  const serialize = (document: (typeof documents)[number]): DashboardDocument => ({ ...document, updatedAt: document.updatedAt.toISOString() });
+  const serialize = (document: (typeof documents)[number]): DashboardDocument => ({
+    id: document.id,
+    name: document.name,
+    version: document.version,
+    updatedAt: document.updatedAt.toISOString(),
+    owner: document.owner,
+    ...(document.ownerId !== currentUser.id
+      ? { accessRole: document.shares.find((share) => share.userId === currentUser.id)?.role }
+      : {}),
+  });
   const mine = documents.filter((document) => document.ownerId === currentUser.id).map(serialize);
   const shared = documents.filter((document) => document.ownerId !== currentUser.id).map(serialize);
   const otherUser = users.find((user) => user.id !== currentUser.id);
@@ -31,7 +41,12 @@ export default async function DashboardPage() {
     <div className="min-h-screen">
       <header className="border-b border-zinc-200/80 bg-paper/90 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 sm:px-8">
-          <div className="flex items-center gap-2.5"><span className="grid h-9 w-9 place-items-center rounded-xl bg-brand text-lg font-bold text-white">A</span><span className="font-semibold tracking-tight">Ajaia Docs</span></div>
+          <div className="flex items-center gap-2.5">
+            <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand text-lg font-bold text-white">
+              A
+            </span>
+            <span className="font-semibold tracking-tight">Ajaia Docs</span>
+          </div>
           <UserSwitcher users={users} currentUserId={currentUser.id} />
         </div>
       </header>

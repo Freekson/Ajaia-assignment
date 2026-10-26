@@ -2,7 +2,10 @@ export type SaveQueueStatus = "saved" | "saving" | "error" | "conflict";
 export type SaveFailureKind = "error" | "conflict";
 
 export class SaveQueueFailure extends Error {
-  constructor(public readonly kind: SaveFailureKind, message: string) {
+  constructor(
+    public readonly kind: SaveFailureKind,
+    message: string,
+  ) {
     super(message);
     this.name = "SaveQueueFailure";
   }
@@ -30,7 +33,9 @@ export class SerializedSaveQueue<Patch extends object> {
   flush(): Promise<boolean> {
     if (this.blocked) return Promise.resolve(false);
     if (this.active) return this.active;
-    this.active = this.drain().finally(() => { this.active = null; });
+    this.active = this.drain().finally(() => {
+      this.active = null;
+    });
     return this.active;
   }
 
@@ -54,7 +59,8 @@ export class SerializedSaveQueue<Patch extends object> {
         await this.sender(patch);
       } catch (error) {
         this.pending = { ...patch, ...(this.pending ?? {}) };
-        const failure = error instanceof SaveQueueFailure ? error : new SaveQueueFailure("error", "Save failed.");
+        const failure =
+          error instanceof SaveQueueFailure ? error : new SaveQueueFailure("error", "Save failed.");
         this.blocked = failure.kind;
         this.onStatus(failure.kind, failure.message);
         return false;

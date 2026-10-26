@@ -4,7 +4,9 @@ import { SaveQueueFailure, SerializedSaveQueue } from "@/lib/save-queue";
 describe("serialized save queue", () => {
   it("serializes writes and sends the newest pending content last", async () => {
     let releaseFirst!: () => void;
-    const firstRequest = new Promise<void>((resolve) => { releaseFirst = resolve; });
+    const firstRequest = new Promise<void>((resolve) => {
+      releaseFirst = resolve;
+    });
     const sent: string[] = [];
     const sender = vi.fn(async (patch: { content: string }) => {
       sent.push(patch.content);
@@ -20,7 +22,10 @@ describe("serialized save queue", () => {
   });
 
   it("retains unsaved content after failure and sends it on retry", async () => {
-    const sender = vi.fn().mockRejectedValueOnce(new SaveQueueFailure("error", "Offline")).mockResolvedValueOnce(undefined);
+    const sender = vi
+      .fn()
+      .mockRejectedValueOnce(new SaveQueueFailure("error", "Offline"))
+      .mockResolvedValueOnce(undefined);
     const queue = new SerializedSaveQueue<{ content: string }>(sender, vi.fn());
     queue.enqueue({ content: "keep me" });
     expect(await queue.flush()).toBe(false);

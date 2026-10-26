@@ -1,0 +1,10 @@
+.next
+node_modules
+coverage
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+package-lock.json
+prisma/migrations
+skills

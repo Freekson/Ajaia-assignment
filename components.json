@@ -3,6 +3,17 @@
   "style": "new-york",
   "rsc": true,
   "tsx": true,
-  "tailwind": { "config": "tailwind.config.ts", "css": "app/globals.css", "baseColor": "zinc", "cssVariables": false },
-  "aliases": { "components": "@/components", "utils": "@/lib/utils", "ui": "@/components/ui", "lib": "@/lib", "hooks": "@/hooks" }
+  "tailwind": {
+    "config": "tailwind.config.ts",
+    "css": "app/globals.css",
+    "baseColor": "zinc",
+    "cssVariables": false
+  },
+  "aliases": {
+    "components": "@/components",
+    "utils": "@/lib/utils",
+    "ui": "@/components/ui",
+    "lib": "@/lib",
+    "hooks": "@/hooks"
+  }
 }

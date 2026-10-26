@@ -14,6 +14,8 @@ describe("text import", () => {
   });
 
   it("rejects unsupported files", () => {
-    expect(validateTextFile({ name: "notes.pdf", size: 100, type: "application/pdf" })).toMatch(/\.txt/);
+    expect(validateTextFile({ name: "notes.pdf", size: 100, type: "application/pdf" })).toMatch(
+      /\.txt/,
+    );
   });
 });

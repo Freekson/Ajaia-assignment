@@ -2,23 +2,27 @@
 
 A lightweight full-stack document editor built with Next.js, TypeScript, Tailwind CSS, shadcn/ui conventions, Tiptap, Prisma, and PostgreSQL. The MVP supports rich-text editing, debounced autosave, `.txt` import, two demo users, ownership, and server-enforced sharing.
 
+**Live demo:** https://ajaia-assignment-eta.vercel.app/
+
 ## Features
 
-- Create, rename, edit, save, and reopen documents
+- Create, rename, edit, save, reopen, and delete owned documents
 - Bold, italic, underline, H1–H3, bulleted and numbered lists
 - Structured Tiptap JSON persisted in PostgreSQL
 - Import `.txt` files up to 1 MB with validation feedback
 - Switch between seeded Alice and Bob demo accounts
-- Share and revoke document access; shared users can edit content
+- Share documents with viewer or editor access and revoke access
 - Separate “My documents” and “Shared with me” sections
 - Permission checks in every document and sharing route
+- Server-enforced role permissions: viewers are read-only, editors can change content
 - Serialized autosave with retry, save-before-navigation, and unload protection
 - Optimistic concurrency control that rejects stale document versions with `409 Conflict`
+- Export the current rich-text document as a Markdown file
 - Responsive dashboard, save status, loading, error, and empty states
 
 ## Local setup
 
-Prerequisites: Node.js 20+, npm, and Docker Desktop. A remote PostgreSQL database such as Neon can also be used.
+Prerequisites: Node.js 20.19+, npm, and Docker Desktop. A remote PostgreSQL database such as Neon can also be used.
 
 1. Install dependencies:
 
@@ -65,10 +69,16 @@ This switcher is intentionally demo authentication and must not be treated as a 
 ```bash
 npm test
 npm run test:integration
+npm run lint
+npm run typecheck
 npm run build
 ```
 
 `npm test` runs isolated unit tests without Docker. `npm run test:integration` starts the separate `postgres-test` Compose profile on port `54330`, applies migrations to `ajaia_docs_test`, verifies concurrent OCC writes, and cleans up its test records. It refuses to run against a URL that does not contain `ajaia_docs_test`.
+
+### Code formatting
+
+The project uses Prettier with Tailwind CSS class sorting and ESLint with the Next.js Core Web Vitals and TypeScript rules. Run `npm run format` to format the repository, `npm run format:check` for a read-only formatting check, `npm run lint` for code-quality checks, and `npm run lint:fix` for safe automatic fixes.
 
 ## Deploy to Vercel
 
