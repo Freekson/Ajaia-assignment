@@ -18,7 +18,7 @@ Prisma ORM ────────────── PostgreSQL / Neon
 
 - `User`: the two seeded demo identities.
 - `Document`: title, Tiptap JSON content, owner, monotonic integer version, and timestamps.
-- `DocumentShare`: unique document/user join row granting `VIEWER` or `EDITOR` access.
+- `DocumentShare`: unique document/user join row granting `VIEWER` or `EDITOR` access. Existing shares were migrated to `EDITOR` to preserve prior behavior; newly created shares default to `VIEWER`.
 
 Foreign keys cascade when a parent is removed. Indexes cover owner lists, recipient lookups, and modified-date ordering.
 
@@ -28,18 +28,18 @@ Foreign keys cascade when a parent is removed. Indexes cover owner lists, recipi
 
 ## Persistence and editor flow
 
-Tiptap produces a structured JSON document. The editor waits 800 ms after the last change and feeds the latest snapshot into a serialized queue, so an older request cannot complete after a newer request. Navigation flushes that queue before leaving; failed navigation offers Retry, Stay, or Discard, while `beforeunload` protects refresh and tab close.
+Tiptap produces a structured JSON document. The editor waits 800 ms after the last change and feeds the latest snapshot into a serialized queue, so an older request cannot complete after a newer request. Navigation flushes that queue before leaving; failed navigation offers Retry, Stay, or Discard, while `beforeunload` protects refresh and tab close. Viewers receive a non-editable editor and disabled formatting controls, while export remains available.
 
-Each PATCH includes the client's document version. PostgreSQL atomically updates only a row matching both its ID and version, increments the version, and rejects stale writes with `409 Conflict`. Conflict UI preserves the local editor content, pauses autosave, and lets the user copy their text or reload the current server version. PostgreSQL stores editor content as `JSONB`, preserving marks, nodes, headings, and list structure.
+Each PATCH includes the client's document version. PostgreSQL atomically updates only a row matching both its ID and version, increments the version, and rejects stale writes with `409 Conflict`. Conflict UI preserves the local editor content, pauses autosave, and lets the user copy their text or reload the current server version. PostgreSQL stores editor content as `JSONB`, preserving marks, nodes, headings, and list structure. The browser can serialize the current Tiptap JSON to a Markdown download; this is a client-side export and does not change persisted content.
 
 ## API surface
 
 | Method          | Route                       | Purpose                                |
 | --------------- | --------------------------- | -------------------------------------- |
 | GET/POST        | `/api/documents`            | List accessible documents / create one |
-| GET/PATCH       | `/api/documents/:id`        | Read / rename or save content          |
+| GET/PATCH/DELETE | `/api/documents/:id`       | Read / rename or save content / delete |
 | POST            | `/api/documents/import`     | Validate and import a `.txt` file      |
-| GET/POST/DELETE | `/api/documents/:id/shares` | List, grant, or revoke shares          |
+| GET/POST/DELETE | `/api/documents/:id/shares` | List, set a viewer/editor role, or revoke a share |
 | POST            | `/api/session`              | Switch seeded demo identity            |
 
 ## Tradeoffs

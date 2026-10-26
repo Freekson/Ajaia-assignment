@@ -56,6 +56,7 @@ export function DocumentEditor({ document, currentUser, users, initialShares, ca
   const [shareOpen, setShareOpen] = useState(false);
   const [shares, setShares] = useState(initialShares);
   const [shareError, setShareError] = useState<string | null>(null);
+  const [shareNotice, setShareNotice] = useState<string | null>(null);
   const [sharingUserId, setSharingUserId] = useState<string | null>(null);
   const [navigationDialogOpen, setNavigationDialogOpen] = useState(false);
   const [conflictDialogOpen, setConflictDialogOpen] = useState(false);
@@ -130,6 +131,9 @@ export function DocumentEditor({ document, currentUser, users, initialShares, ca
     immediatelyRender: false,
     editorProps: { attributes: { class: "tiptap" } },
     onUpdate: ({ editor: currentEditor }) => {
+      if (!canEdit) {
+        return;
+      }
       queue.enqueue({ content: currentEditor.getJSON() });
       scheduleSave();
     },
@@ -137,7 +141,14 @@ export function DocumentEditor({ document, currentUser, users, initialShares, ca
 
   useEffect(() => {
     editor?.setEditable(canEdit);
-  }, [canEdit, editor]);
+    if (!canEdit) {
+      if (timer.current) {
+        clearTimeout(timer.current);
+        timer.current = null;
+      }
+      queue.discard();
+    }
+  }, [canEdit, editor, queue]);
 
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -260,6 +271,7 @@ export function DocumentEditor({ document, currentUser, users, initialShares, ca
 
   async function setShareRole(userId: string, role: ShareRole) {
     setShareError(null);
+    setShareNotice(null);
     setSharingUserId(userId);
     try {
       const response = await fetch(`/api/documents/${document.id}/shares`, {
@@ -271,10 +283,11 @@ export function DocumentEditor({ document, currentUser, users, initialShares, ca
         const body = (await response.json().catch(() => null)) as { error?: string } | null;
         setShareError(body?.error ?? "Could not update sharing.");
       } else {
-        setShares((current) => [
-          ...current.filter((share) => share.userId !== userId),
-          { userId, role },
-        ]);
+        const share = (await response.json()) as ShareAccess;
+        const recipient = users.find((user) => user.id === userId);
+        setShares((current) => [...current.filter((item) => item.userId !== userId), share]);
+        setShareNotice(`${recipient?.name ?? "User"} now has ${role.toLowerCase()} access.`);
+        router.refresh();
       }
     } catch {
       setShareError("Could not reach the server.");
@@ -285,6 +298,7 @@ export function DocumentEditor({ document, currentUser, users, initialShares, ca
 
   async function removeShare(userId: string) {
     setShareError(null);
+    setShareNotice(null);
     setSharingUserId(userId);
     try {
       const response = await fetch(`/api/documents/${document.id}/shares`, {
@@ -297,6 +311,9 @@ export function DocumentEditor({ document, currentUser, users, initialShares, ca
         setShareError(body?.error ?? "Could not remove access.");
       } else {
         setShares((current) => current.filter((share) => share.userId !== userId));
+        const recipient = users.find((user) => user.id === userId);
+        setShareNotice(`Removed access for ${recipient?.name ?? "user"}.`);
+        router.refresh();
       }
     } catch {
       setShareError("Could not reach the server.");
@@ -460,6 +477,7 @@ export function DocumentEditor({ document, currentUser, users, initialShares, ca
                 })}
             </div>
             {shareError && <p className="mt-3 text-xs text-red-600">{shareError}</p>}
+            {shareNotice && <p role="status" className="mt-3 text-xs text-emerald-700">{shareNotice}</p>}
           </div>
         )}
       </header>

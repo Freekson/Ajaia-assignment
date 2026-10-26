@@ -84,22 +84,23 @@ The project uses Prettier with Tailwind CSS class sorting and ESLint with the Ne
 
 1. Push the repository to GitHub and import it in Vercel.
 2. Add `DATABASE_URL` and `DIRECT_URL` in Vercel project settings.
-3. Set the build command to `npm run db:deploy && npm run build`.
-4. Deploy, then seed production once from a trusted terminal with the production environment loaded: `npm run db:seed`.
-5. Paste the public URL into `SUBMISSION.md` and record the walkthrough URL in `video-link.txt`.
+3. Set the build command to `npm run db:generate && npm run db:deploy && npm run db:seed && npx next build`.
+4. Deploy. The seed script is idempotent, so the two demo identities remain available on later deployments.
+5. Keep Vercel on Node.js `24.x`; the required value is declared in `package.json`.
+6. Record the walkthrough URL in `video-link.txt`.
 
 ## Demo flow
 
-Start as Alice, create or import a document, apply formatting, wait for “Saved,” and share it with Bob. Return to the dashboard, switch to Bob, open the document under “Shared with me,” edit it, and refresh to verify persistence. Switch back to Alice to revoke access.
+Start as Alice, create or import a document, apply formatting, wait for “Saved,” and share it with Bob as an editor. Switch to Bob, open the document under “Shared with me,” edit it, and refresh to verify persistence. Switch back to Alice, change Bob to viewer access, and confirm the document becomes read-only. Export the document as Markdown, then revoke Bob’s access.
 
 ## Known limitations
 
 - Demo identity is selected with an HTTP-only cookie; it is intentionally not production authentication.
-- Sharing grants edit access, not granular view/edit roles.
-- Autosave is serialized within a tab, and cross-session stale writes are rejected. Real-time presence, CRDT conflict resolution, comments, history, and exports are out of scope.
+- Owners have full access; shared users receive `VIEWER` or `EDITOR` access. The demo intentionally does not include additional roles such as commenter or administrator.
+- Autosave is serialized within a tab, and cross-session stale writes are rejected. Real-time presence, CRDT conflict resolution, comments, and version history are out of scope.
 - Concurrent writes use document versions rather than automatic merging. When a conflict occurs, local content remains in the editor and autosave stays paused until the user reloads the latest version; copying the draft exports plain text rather than Tiptap JSON.
 - `.txt` import preserves lines as paragraphs but does not infer formatting.
-- The MVP has no document deletion to reduce accidental data loss.
+- Deleting a document is permanent and owner-only; there is no trash or restore flow.
 
 See [ARCHITECTURE.md](./ARCHITECTURE.md), [AI_WORKFLOW.md](./AI_WORKFLOW.md), and [SUBMISSION.md](./SUBMISSION.md) for implementation and handoff details.
 

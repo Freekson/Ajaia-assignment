@@ -9,7 +9,7 @@
 ## Included
 
 - Complete Next.js/TypeScript source code
-- Prisma PostgreSQL schema and two migrations
+- Prisma PostgreSQL schema and three migrations
 - Docker Compose development and isolated test databases
 - Unit and PostgreSQL OCC integration tests
 - Local setup and deployment instructions in `README.md`
@@ -39,7 +39,7 @@
 
 ## Current submission status
 
-The application is deployed and the production API smoke test passes. Source code, migrations, automated tests, documentation, and the public application URL are ready. Google Drive packaging, screenshots, and the walkthrough video remain pending before submission.
+The initial production deployment is complete at the public URL above, and its production API smoke test passed. Source code, migrations, automated tests, and documentation are ready. The latest role-based sharing release must be redeployed with Node.js `24.x` after the Vercel Node 20 deprecation error; its migration has already been applied and is backward-compatible. Google Drive packaging, screenshots, and the walkthrough video remain pending before submission.
 
 ## Production verification
 
@@ -51,7 +51,9 @@ Verified against the public Vercel deployment on October 26, 2026:
 - access revocation and subsequent forbidden access (`403`)
 - valid `.txt` import and reopening the imported document
 
-## Optional enhancement
+The current production checklist additionally covers editor-to-viewer downgrade, viewer write rejection (`403`), owner-only deletion, and smoke-test cleanup after the latest deployment succeeds.
+
+## Implemented stretch enhancements
 
 - Export the current editor content to Markdown, including headings, emphasis, underline, and lists
 - Role-based sharing with owner, editor, and viewer permission levels
@@ -67,4 +69,4 @@ Verified against the public Vercel deployment on October 26, 2026:
 
 ## Deferred by scope
 
-Production authentication, real-time simultaneous editing/CRDT, comments, suggestions, version history, advanced roles, complex conversion, and export are intentionally not included.
+Production authentication, real-time simultaneous editing/CRDT, comments, suggestions, version history, additional roles beyond viewer/editor, complex conversion, and PDF export are intentionally not included.
